@@ -2,9 +2,9 @@ import com.google.gson.Gson
 import java.net.URL
 
 data class ExchangeRate (val success: Boolean, val timestamp: Int, val base: String,
-                    val date: String, val rates: HashMap<String, Double>)
+                         val date: String, val rates: HashMap<String, Double>)
 
-class ExchangeRateUpdater {
+class ExchangeRateUpdater() {
 
     private val gson = Gson()
 

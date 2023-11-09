@@ -1,4 +1,7 @@
+import java.util.*
+
 fun main() {
-    val currencyHandler = CurrencyHandler()
-    println(currencyHandler.exchange("RUB", 1000.0))
+
+    val tinkoffBank = Bank()
+//    println(tinkoffBank.currencyHandler.exchange(Currency.getInstance(Locale.JAPAN), 1000.0))
 }
