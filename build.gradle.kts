@@ -14,6 +14,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("com.google.code.gson:gson:2.10.1")
+    testImplementation(platform("org.junit:junit-bom:5.10.1"))
 }
 
 tasks.test {
