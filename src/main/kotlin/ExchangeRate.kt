@@ -9,7 +9,7 @@ class ExchangeRateUpdater {
     private val gson = Gson()
 
     fun getExchangingRate(): ExchangeRate {
-        val json = URL("http://api.exchangeratesapi.io/v1/latest?access_key=6813a6e40490b95043bbde2b6b6e2199").readText()
+        val json = URL("http://api.exchangeratesapi.io/v1/latest?access_key=07af2429a3c0f8a05dab91dc940bb07b").readText()
         return gson.fromJson(json, ExchangeRate::class.java)
     }
 }

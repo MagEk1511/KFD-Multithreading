@@ -1,20 +1,36 @@
 import java.util.Currency
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 class CurrencyHandler {
     private val exchangeRateTable = ConcurrentHashMap<Currency, Double>()
 
     private val updater = ExchangeRateUpdater()
 
-    init {
-        updater.getExchangingRate().rates.forEach { (key, value) ->
+    private fun update() {
+        val rates = updater.getExchangingRate().rates
+        synchronized(Any()) {
+        rates.forEach { (key, value) ->
             try {
-                exchangeRateTable[Currency.getInstance(key)] = value
-            } catch (exc: IllegalArgumentException) {
-                println(key)
-                // Добавить логирование
+                val curr = Currency.getInstance(key)
+                exchangeRateTable[curr] = value
+            } catch (ex: IllegalArgumentException) {
+                println("Wrong currency: $key")
+                }
+            TODO("Add logging")
             }
         }
+    }
+
+    init {
+        val executor = ScheduledThreadPoolExecutor(1)
+            executor.scheduleAtFixedRate(
+                {
+                    update()
+                }, 0, 30, TimeUnit.SECONDS
+            )
+
     }
 
     fun exchange(toCurrency: Currency, amount: Double): Double =
@@ -41,6 +57,4 @@ class CurrencyHandler {
             throw exc
         }
     }
-
-    // Добавить автоматическое обновление курса
 }
