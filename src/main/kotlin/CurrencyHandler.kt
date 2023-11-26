@@ -1,3 +1,5 @@
+import logging.Observer
+import transactions.Status
 import java.util.Currency
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledThreadPoolExecutor
@@ -8,6 +10,21 @@ class CurrencyHandler {
 
     private val updater = ExchangeRateUpdater()
 
+    private val observers = mutableListOf<Observer>()
+
+    val executor = ScheduledThreadPoolExecutor(1)
+
+
+    fun addObserver(observer: Observer) {
+        observers.add(observer)
+    }
+
+    fun notifyObservers(status: Status, message: String) {
+        observers.forEach {
+            it.update(status, message)
+        }
+    }
+
     private fun update() {
         val rates = updater.getExchangingRate().rates
         synchronized(Any()) {
@@ -16,21 +33,23 @@ class CurrencyHandler {
                 val curr = Currency.getInstance(key)
                 exchangeRateTable[curr] = value
             } catch (ex: IllegalArgumentException) {
-                println("Wrong currency: $key")
+                notifyObservers(Status.ERROR, "Couldn't find $key")
                 }
-            TODO("Add logging")
             }
         }
+        notifyObservers(Status.COMPLETED, "Exchanging rate updated")
     }
 
     init {
-        val executor = ScheduledThreadPoolExecutor(1)
             executor.scheduleAtFixedRate(
                 {
                     update()
                 }, 0, 30, TimeUnit.SECONDS
             )
+    }
 
+    fun endCurrencyHandler() {
+        executor.shutdownNow()
     }
 
     fun exchange(toCurrency: Currency, amount: Double): Double =

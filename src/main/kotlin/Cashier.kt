@@ -5,20 +5,33 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class Cashier(private val bank: Bank, private val id: Int): Thread() {
     private val completedTransactionQueue: ConcurrentLinkedQueue<Transaction> = ConcurrentLinkedQueue<Transaction>()
 
+    @Volatile
+    private var isInterrupted = false
+
     override fun run() {
-        while(true) {
-            val transaction = bank.transactionsQueue.poll()
+        while (!isInterrupted) {
+            if (isInterrupted) {
+                break
+            }
+
+            val transaction = try {
+                bank.transactionsQueue.poll()
+            } catch (e: InterruptedException) {
+                // Обработка прерывания
+                isInterrupted = true
+                null
+            }
+
             if (transaction != null) {
-                if(transaction.make() == Status.ERROR) {
-                    println("$id [${transaction.status}]: ${transaction.message}")
-//                    TODO("Add logging")
-                } else {
-                    println("$id [${transaction.status}]: ${transaction.message}")
-//                    TODO("Add logging")
-                }
+                transaction.make()
+                bank.notifyObservers(transaction.status, transaction.message)
                 completedTransactionQueue.add(transaction)
             }
         }
+    }
+
+    fun shutdown() {
+        isInterrupted = true
     }
 
     init {
